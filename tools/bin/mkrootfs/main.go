@@ -26,7 +26,7 @@ var (
 
 func main() {
 	cmd := &cobra.Command{
-		Use: "--dest <destination of rootfs> <image repository>",
+		Use:                   "--dest <destination of rootfs> <image repository>",
 		DisableFlagsInUseLine: true,
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) != 1 {

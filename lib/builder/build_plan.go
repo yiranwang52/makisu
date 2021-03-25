@@ -30,8 +30,9 @@ import (
 )
 
 type buildPlanOptions struct {
-	forceCommit   bool
-	allowModifyFS bool
+	forceCommit       bool
+	allowModifyFS     bool
+	allowFromModifyFS bool
 }
 
 // BuildPlan describes a list of named buildStages, that can copy files between
@@ -65,7 +66,7 @@ type BuildPlan struct {
 // returns a new BuildPlan.
 func NewBuildPlan(
 	ctx *context.BuildContext, target image.Name, replicas []image.Name, cacheMgr cache.Manager,
-	parsedStages []*dockerfile.Stage, allowModifyFS, forceCommit bool, stageTarget string) (*BuildPlan, error) {
+	parsedStages []*dockerfile.Stage, allowModifyFS, allowFromModifyFS, forceCommit bool, stageTarget string) (*BuildPlan, error) {
 
 	plan := &BuildPlan{
 		baseCtx:           ctx,
@@ -78,8 +79,9 @@ func NewBuildPlan(
 		stageAliases:      make(map[string]struct{}),
 		stageIndexAliases: make(map[string]*buildStage),
 		opts: &buildPlanOptions{
-			forceCommit:   forceCommit,
-			allowModifyFS: allowModifyFS,
+			forceCommit:       forceCommit,
+			allowModifyFS:     allowModifyFS,
+			allowFromModifyFS: allowFromModifyFS,
 		},
 	}
 

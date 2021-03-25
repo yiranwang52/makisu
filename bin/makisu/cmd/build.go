@@ -46,11 +46,12 @@ type buildCmd struct {
 	registryConfig string
 	destination    string
 
-	target        string
-	buildArgs     []string
-	allowModifyFS bool
-	commit        string
-	blacklists    []string
+	target            string
+	buildArgs         []string
+	allowModifyFS     bool
+	allowFromModifyFS bool
+	commit            string
+	blacklists        []string
 
 	localCacheTTL      time.Duration
 	redisCacheAddress  string
@@ -107,6 +108,7 @@ func getBuildCmd() *buildCmd {
 	buildCmd.PersistentFlags().StringVar(&buildCmd.target, "target", "", "Set the target build stage to build.")
 	buildCmd.PersistentFlags().StringArrayVar(&buildCmd.buildArgs, "build-arg", nil, "Argument to the dockerfile as per the spec of ARG. Format is \"--build-arg <arg>=<value>\"")
 	buildCmd.PersistentFlags().BoolVar(&buildCmd.allowModifyFS, "modifyfs", false, "Allow makisu to modify files outside of its internal storage dir")
+	buildCmd.PersistentFlags().BoolVar(&buildCmd.allowFromModifyFS, "from-modifyfs", true, "Allow FROM step to modify files outside of its internal storage dir")
 	buildCmd.PersistentFlags().StringVar(&buildCmd.commit, "commit", "implicit", "Set to explicit to only commit at steps with '#!COMMIT' annotations; Set to implicit to commit at every ADD/COPY/RUN step")
 	buildCmd.PersistentFlags().StringArrayVar(&buildCmd.blacklists, "blacklist", nil, "Makisu will ignore all changes to these locations in the resulting docker images")
 
@@ -209,7 +211,7 @@ func (cmd *buildCmd) newBuildPlan(
 
 	// Create BuildPlan and validate it.
 	return builder.NewBuildPlan(
-		buildContext, imageName, replicas, cacheMgr, dockerfile, cmd.allowModifyFS, forceCommit, cmd.target)
+		buildContext, imageName, replicas, cacheMgr, dockerfile, cmd.allowModifyFS, cmd.allowFromModifyFS, forceCommit, cmd.target)
 }
 
 // Build image from the specified dockerfile.

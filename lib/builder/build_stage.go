@@ -37,9 +37,10 @@ type buildStageOptions struct {
 	// forceCommit will make every step attempt to commit a layer.
 	// Commit() is noop for steps other than ADD/COPY/RUN if they are not after
 	// an uncommitted RUN, so this won't generate extra empty layers.
-	forceCommit   bool
-	allowModifyFS bool
-	requireOnDisk bool
+	forceCommit       bool
+	allowModifyFS     bool
+	allowFromModifyFS bool
+	requireOnDisk     bool
 }
 
 // buildStage represents a sequence of steps to build intermediate layers or a final image.
@@ -101,8 +102,9 @@ func newRemoteImageStage(
 	// checkpointed. Value of allowModifyFS is verified later, but maybe the
 	// verification should happen here?
 	opts := &buildPlanOptions{
-		forceCommit:   false,
-		allowModifyFS: planOpts.allowModifyFS,
+		forceCommit:       false,
+		allowModifyFS:     planOpts.allowModifyFS,
+		allowFromModifyFS: planOpts.allowFromModifyFS,
 	}
 
 	return newBuildStageHelper(ctx, alias, steps, opts)
@@ -139,9 +141,10 @@ func newBuildStageHelper(
 		alias:        alias,
 		nodes:        nodes,
 		opts: &buildStageOptions{
-			allowModifyFS: planOpts.allowModifyFS,
-			forceCommit:   planOpts.forceCommit,
-			requireOnDisk: requireOnDisk,
+			allowModifyFS:     planOpts.allowModifyFS,
+			allowFromModifyFS: planOpts.allowFromModifyFS,
+			forceCommit:       planOpts.forceCommit,
+			requireOnDisk:     requireOnDisk,
 		},
 	}
 
@@ -182,10 +185,22 @@ func (stage *buildStage) build(cacheMgr cache.Manager, lastStage, copiedFrom boo
 		lastStep := i == len(stage.nodes)-1
 		forceCommit := i == 0 || (lastStage && lastStep) || stage.opts.forceCommit
 
-		nodeOpts := &buildNodeOptions{
-			skipBuild:   skipBuild,
-			forceCommit: forceCommit,
-			modifyFS:    modifyFS,
+
+		var nodeOpts *buildNodeOptions
+		switch node.BuildStep.(type) {
+		case *step.FromStep:
+			fromModifyFS := stage.opts.allowFromModifyFS && modifyFS
+			nodeOpts = &buildNodeOptions{
+				skipBuild:   skipBuild,
+				forceCommit: forceCommit,
+				modifyFS:    fromModifyFS,
+			}
+		default:
+			nodeOpts = &buildNodeOptions{
+				skipBuild:   skipBuild,
+				forceCommit: forceCommit,
+				modifyFS:    modifyFS,
+			}
 		}
 
 		log.Infof("* Step %d/%d (%s) : %s", i+1, len(stage.nodes), nodeOpts.String(), node.String())

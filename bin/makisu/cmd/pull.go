@@ -29,9 +29,9 @@ type pullCmd struct {
 func getPullCmd() *pullCmd {
 	pullCmd := &pullCmd{
 		Command: &cobra.Command{
-			Use: "pull --dest <destination of rootfs> <image repository>",
+			Use:                   "pull --dest <destination of rootfs> <image repository>",
 			DisableFlagsInUseLine: true,
-			Short: "Pull docker image from registry into the storage directory of makisu.",
+			Short:                 "Pull docker image from registry into the storage directory of makisu.",
 		},
 	}
 	pullCmd.Args = func(cmd *cobra.Command, args []string) error {
