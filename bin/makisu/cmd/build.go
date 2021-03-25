@@ -241,7 +241,7 @@ func (cmd *buildCmd) Build(contextDir string) error {
 	// Make sure sandbox is cleaned after build.
 	// Optionally remove everything before and after build.
 	defer storage.CleanupSandbox(cmd.storageDir)
-	if cmd.allowModifyFS {
+	if cmd.allowModifyFS && cmd.allowFromModifyFS {
 		if cmd.preserveRoot {
 			rootPreserver, err := storage.NewRootPreserver("/", cmd.storageDir, pathutils.DefaultBlacklist)
 			if err != nil {
