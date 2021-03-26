@@ -240,7 +240,7 @@ func (plan *BuildPlan) executeStage(stage *buildStage, lastStage, copiedFrom boo
 		return fmt.Errorf("build stage %s: %s", stage.alias, err)
 	}
 
-	if plan.opts.allowModifyFS {
+	if plan.opts.allowModifyFS && !lastStage {
 		// Note: The rest of this function mostly deal with `COPY --from`
 		// related logic, and currently `COPY --from` cannot be supported with
 		// modifyfs=false. That combination was rejected in NewPlan().
